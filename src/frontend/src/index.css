@@ -1,0 +1,144 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Deep Green Alumni Theme */
+    --background: 0.98 0.005 150;
+    --foreground: 0.15 0.02 160;
+
+    --card: 1 0 0;
+    --card-foreground: 0.15 0.02 160;
+
+    --popover: 1 0 0;
+    --popover-foreground: 0.15 0.02 160;
+
+    /* Deep Green Primary */
+    --primary: 0.35 0.1 155;
+    --primary-foreground: 0.98 0 0;
+
+    --secondary: 0.94 0.01 150;
+    --secondary-foreground: 0.25 0.06 155;
+
+    --muted: 0.94 0.008 150;
+    --muted-foreground: 0.5 0.02 155;
+
+    --accent: 0.9 0.03 150;
+    --accent-foreground: 0.25 0.06 155;
+
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    --border: 0.88 0.015 150;
+    --input: 0.88 0.015 150;
+    --ring: 0.35 0.1 155;
+
+    --chart-1: 0.35 0.1 155;
+    --chart-2: 0.55 0.12 155;
+    --chart-3: 0.7 0.08 155;
+    --chart-4: 0.828 0.189 84.429;
+    --chart-5: 0.769 0.188 70.08;
+
+    --sidebar: 0.96 0.01 150;
+    --sidebar-foreground: 0.15 0.02 160;
+    --sidebar-primary: 0.35 0.1 155;
+    --sidebar-primary-foreground: 0.98 0 0;
+    --sidebar-accent: 0.9 0.03 150;
+    --sidebar-accent-foreground: 0.25 0.06 155;
+    --sidebar-border: 0.88 0.015 150;
+    --sidebar-ring: 0.35 0.1 155;
+  }
+
+  .dark {
+    --background: 0.12 0.02 160;
+    --foreground: 0.95 0.01 150;
+
+    --card: 0.16 0.025 158;
+    --card-foreground: 0.95 0.01 150;
+
+    --popover: 0.18 0.025 158;
+    --popover-foreground: 0.95 0.01 150;
+
+    --primary: 0.55 0.12 155;
+    --primary-foreground: 0.1 0.02 160;
+
+    --secondary: 0.22 0.03 158;
+    --secondary-foreground: 0.9 0.01 150;
+
+    --muted: 0.22 0.03 158;
+    --muted-foreground: 0.65 0.02 155;
+
+    --accent: 0.28 0.04 158;
+    --accent-foreground: 0.9 0.01 150;
+
+    --destructive: 0.704 0.191 22.216;
+    --destructive-foreground: 0.205 0 0;
+
+    --border: 1 0 0 / 10%;
+    --input: 1 0 0 / 15%;
+    --ring: 0.55 0.12 155;
+
+    --sidebar: 0.16 0.025 158;
+    --sidebar-foreground: 0.95 0.01 150;
+    --sidebar-primary: 0.55 0.12 155;
+    --sidebar-primary-foreground: 0.1 0.02 160;
+    --sidebar-accent: 0.22 0.03 158;
+    --sidebar-accent-foreground: 0.9 0.01 150;
+    --sidebar-border: 1 0 0 / 10%;
+    --sidebar-ring: 0.55 0.12 155;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Playfair Display", serif;
+  }
+}
+
+@layer components {
+  .section-heading {
+    @apply text-3xl md:text-4xl font-bold text-forest-dark mb-4;
+    font-family: "Playfair Display", serif;
+  }
+
+  .section-subheading {
+    @apply text-lg text-muted-foreground max-w-2xl mx-auto;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover;
+  }
+
+  .btn-primary {
+    @apply bg-forest text-white px-6 py-3 rounded-full font-semibold transition-all duration-200 hover:bg-forest-dark hover:shadow-lg active:scale-95;
+  }
+
+  .btn-outline {
+    @apply border-2 border-forest text-forest px-6 py-3 rounded-full font-semibold transition-all duration-200 hover:bg-forest hover:text-white;
+  }
+
+  .nav-link {
+    @apply text-sm font-medium transition-colors duration-200 hover:text-forest;
+  }
+}
