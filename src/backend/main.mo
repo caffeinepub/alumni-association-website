@@ -15,18 +15,14 @@ import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
 actor {
-  // Include authorization
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
   include MixinStorage();
 
-  // Initialize user approval state
   let approvalState = UserApproval.initState(accessControlState);
 
-  // Director email - this user is automatically granted admin role
   let DIRECTOR_EMAIL : Text = "stephenkasapogu@gmail.com";
 
-  // Data Types
   public type UserProfile = {
     name : Text;
     email : Text;
@@ -120,7 +116,6 @@ actor {
     timestamp : Time.Time;
   };
 
-  // Data Stores
   let userProfiles = Map.empty<Principal, UserProfile>();
   let alumni = Map.empty<Text, AlumniProfile>();
   let events = Map.empty<Text, Event>();
@@ -131,7 +126,12 @@ actor {
   let discussionThreads = Map.empty<Text, Thread>();
   let newsletterSubscribers = Set.empty<Text>();
 
-  // ── User Profile (required by frontend) ──────────────────────────────────
+  func isDirectorEmail(caller : Principal) : Bool {
+    switch (userProfiles.get(caller)) {
+      case (?profile) { Text.equal(profile.email, DIRECTOR_EMAIL) };
+      case (null) { false };
+    };
+  };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -152,17 +152,23 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
-    // Auto-grant admin/director role if email matches the designated director
     if (Text.equal(profile.email, DIRECTOR_EMAIL)) {
       accessControlState.userRoles.add(caller, #admin);
       accessControlState.adminAssigned := true;
+      UserApproval.setApproval(approvalState, caller, #approved);
     };
   };
 
-  // ── Approval Management ───────────────────────────────────────────────────
-
+  // Safe approval check: avoids trapping when user is not in userRoles map
   public query ({ caller }) func isCallerApproved() : async Bool {
-    AccessControl.hasPermission(accessControlState, caller, #admin) or UserApproval.isApproved(approvalState, caller);
+    if (caller.isAnonymous()) { return false };
+    let isAdmin = switch (accessControlState.userRoles.get(caller)) {
+      case (?#admin) { true };
+      case (_) { false };
+    };
+    if (isAdmin) { return true };
+    if (UserApproval.isApproved(approvalState, caller)) { return true };
+    isDirectorEmail(caller);
   };
 
   public shared ({ caller }) func setApproval(user : Principal, status : UserApproval.ApprovalStatus) : async () {
@@ -183,8 +189,6 @@ actor {
     UserApproval.listApprovals(approvalState);
   };
 
-  // ── Alumni Profiles ───────────────────────────────────────────────────────
-
   public shared ({ caller }) func createAlumniProfile(profile : AlumniProfile) : async () {
     if (not UserApproval.isApproved(approvalState, caller) and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only approved users can create alumni profile");
@@ -195,8 +199,6 @@ actor {
   public query ({ caller }) func getAllAlumniProfiles() : async [AlumniProfile] {
     alumni.values().toArray();
   };
-
-  // ── Events ────────────────────────────────────────────────────────────────
 
   public shared ({ caller }) func createEvent(event : Event) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
@@ -209,8 +211,6 @@ actor {
     events.values().toArray();
   };
 
-  // ── Job Posts ─────────────────────────────────────────────────────────────
-
   public shared ({ caller }) func createJobPost(job : JobPost) : async () {
     if (not UserApproval.isApproved(approvalState, caller) and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only approved users can create job post");
@@ -222,9 +222,6 @@ actor {
     jobs.values().toArray();
   };
 
-  // ── Feedback ──────────────────────────────────────────────────────────────
-
-  // Anyone (including guests) may submit feedback/contact
   public shared ({ caller }) func submitFeedback(feedback : Feedback) : async () {
     feedbacks.add(feedback.id, feedback);
   };
@@ -236,8 +233,6 @@ actor {
     feedbacks.values().toArray();
   };
 
-  // ── Announcements ─────────────────────────────────────────────────────────
-
   public shared ({ caller }) func createAnnouncement(announcement : Announcement) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create announcements");
@@ -248,8 +243,6 @@ actor {
   public query ({ caller }) func getAllAnnouncements() : async [Announcement] {
     announcements.values().toArray();
   };
-
-  // ── Discussion Forum ──────────────────────────────────────────────────────
 
   public shared ({ caller }) func createThread(thread : Thread) : async () {
     if (not UserApproval.isApproved(approvalState, caller) and not AccessControl.isAdmin(accessControlState, caller)) {
@@ -282,9 +275,6 @@ actor {
     discussionThreads.values().toArray();
   };
 
-  // ── Newsletter ────────────────────────────────────────────────────────────
-
-  // Anyone (including guests) may subscribe
   public shared ({ caller }) func subscribeToNewsletter(email : Text) : async () {
     newsletterSubscribers.add(email);
   };
@@ -295,8 +285,6 @@ actor {
     };
     newsletterSubscribers.toArray();
   };
-
-  // ── Alumni Search ─────────────────────────────────────────────────────────
 
   public query ({ caller }) func searchByNameBatchDepartment(searchTerm : Text, batchYear : Nat, department : Text) : async [AlumniProfile] {
     let results = List.empty<AlumniProfile>();
